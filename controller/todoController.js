@@ -1,4 +1,4 @@
-import Todo from "../models/Todo.js";
+import Todo from "../models/todo.js";
 
 // @desc    Get all todos for logged-in user
 // @route   GET /api/todos
