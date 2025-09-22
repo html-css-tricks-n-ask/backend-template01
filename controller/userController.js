@@ -2,6 +2,8 @@ import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
+import generateToken from "../utils/genrateToken.js";
+
 const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -17,28 +19,45 @@ const registerUser = async (req, res) => {
   }
 };
 
+
+
+
+
 const loginUser = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: "Invalid credentials." });
+  const { email, password } = req.body;
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid credentials." });
+  // 1️⃣ Find user
+  const user = await User.findOne({ email });
+  if (!user) return res.status(401).json({ message: "User not found" });
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+  // 2️⃣ Check password (assuming you have bcrypt compare here)
+  // const isMatch = await user.matchPassword(password);
 
 
-    
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email } });
-  } catch (error) {
-    console.log(error , "error");
-    res.status(500).json({ message: "Server Error" });
-  }
-};
+
+  // if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
+
+  // 3️⃣ Generate token
+  const token = generateToken(user._id);
+
+  res.json({
+    _id: user._id,
+    email: user.email,
+    token,   // send JWT back
+  });
+}
+
+
+
+
+
+
 
 const getUsers = async (req, res) => {
+  
   try {
+
+    console.log(req , res , "----------")
     const users = await User.find();
     res.json(users);
   } catch (error) {
@@ -47,3 +66,24 @@ const getUsers = async (req, res) => {
 };
 
 export { registerUser, loginUser, getUsers };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // "token": "
+    // 
+    // eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGNhZTA3ODk0YzY2MWUyNDdhMjVkNjUiLCJpYXQiOjE3NTgxMjYzMDEsImV4cCI6MTc1ODE1MTUwMX0.isnvI1tjKS3cmYHZL64LTx0d8I4SO8qcNrh2JB9VO8I
+    // 
+    // ",
